@@ -8,3 +8,4 @@ media
 venv
 .env
 .vscode
+postgres_data

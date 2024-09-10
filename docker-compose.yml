@@ -1,0 +1,49 @@
+services:
+  web:
+    build:
+      context: .  # Directorio donde está tu Dockerfile
+      dockerfile: Dockerfile  # Opcional si el archivo se llama Dockerfile
+    container_name: djangopolls_web
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASS=${DATABASE_PASS}
+      - GMAIL_EMAIL=${GMAIL_EMAIL}
+      - GMAIL_PASSWORD=${GMAIL_PASSWORD}
+      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
+      - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
+      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
+    command: >
+      sh -c "
+      python manage.py migrate &&
+      python create_superuser.py &&
+      gunicorn --bind 0.0.0.0:8000 pollme.wsgi:application
+      "
+    networks:
+      - djangopolls_network
+    restart: always
+
+  db:
+    image: postgres:13
+    container_name: djangopolls_db
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data  # Volumen montado
+    environment:
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASS}
+    networks:
+      - djangopolls_network
+    restart: always
+
+networks:
+  djangopolls_network:
+    driver: bridge

@@ -14,12 +14,17 @@ import os
 import environ
 
 env = environ.Env()
-environ.Env.read_env()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Ruta al archivo .env
+env_file = os.path.join(BASE_DIR, '.env')
 
+# Comprobar si el archivo .env existe y cargarlo si está disponible
+if os.path.exists(env_file):
+    environ.Env.read_env(env_file)
+    
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
@@ -27,7 +32,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env('DEBUG') == 'True'
+DEBUG = env.bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = ['*']
 
@@ -99,7 +104,6 @@ DATABASES = {
         'PORT': env('DATABASE_PORT'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
