@@ -19,9 +19,6 @@ jobs:
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
 
-      - name: Install envsubst
-        run: sudo apt-get update && sudo apt-get install -y gettext
-
       - name: Replace placeholders in configmap.yml and apply
         run: |
           export SECRET_KEY="${{ secrets.SECRET_KEY }}"
@@ -36,9 +33,9 @@ jobs:
           export DJANGO_SUPERUSER_EMAIL=${{ secrets.DJANGO_SUPERUSER_EMAIL }}
           export DJANGO_SUPERUSER_PASSWORD=${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
           export DOCKER_IMAGE=${{ secrets.DOCKER_IMAGE }}
-          envsubst < k8s/webapp.yml | kubectl apply -f -
+          envsubst < k8s/webapp.yaml | kubectl apply -f -
 
       - name: Deploy to EKS
-        run: kubectl apply -f k8s/webapp.yml
+        run: kubectl apply -f k8s/webapp.yaml
 
       
