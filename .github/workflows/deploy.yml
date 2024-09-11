@@ -24,7 +24,7 @@ jobs:
 
       - name: Replace placeholders in configmap.yml and apply
         run: |
-          export SECRET_KEY=${{ secrets.SECRET_KEY }}
+          export SECRET_KEY="${{ secrets.SECRET_KEY }}"
           export DATABASE_HOST=${{ secrets.DATABASE_HOST }}
           export DATABASE_PORT=${{ secrets.DATABASE_PORT }}
           export DATABASE_NAME=${{ secrets.DATABASE_NAME }}
