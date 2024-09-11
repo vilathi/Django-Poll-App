@@ -19,6 +19,9 @@ jobs:
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
 
+      - name: Install envsubst
+        run: sudo apt-get update && sudo apt-get install -y gettext
+
       - name: Replace placeholders in configmap.yml and apply
         run: |
           export SECRET_KEY=${{ secrets.SECRET_KEY }}
