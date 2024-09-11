@@ -1,0 +1,60 @@
+# Configmap para la web app
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: djangopolls-config
+data:
+  SECRET_KEY: "${DJANGO_SECRET_KEY}"
+  DEBUG: "False"
+  DATABASE_HOST: "${DATABASE_HOST}"
+  DATABASE_PORT: "${DATABASE_PORT}"
+  DATABASE_NAME: "${DATABASE_NAME}"
+  DATABASE_USER: "${DATABASE_USER}"
+  DATABASE_PASS: "${DATABASE_PASS}"
+  GMAIL_EMAIL: "${GMAIL_EMAIL}"
+  GMAIL_PASSWORD: "${GMAIL_PASSWORD}"
+  DJANGO_SUPERUSER_USERNAME: "${DJANGO_SUPERUSER_USERNAME}"
+  DJANGO_SUPERUSER_EMAIL: "${DJANGO_SUPERUSER_EMAIL}"
+  DJANGO_SUPERUSER_PASSWORD: "${DJANGO_SUPERUSER_PASSWORD}"
+
+---
+# Deployment para la web app
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: djangopolls
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: djangopolls
+  template:
+    metadata:
+      labels:
+        app: djangopolls
+    spec:
+      containers:
+      - name: djangopolls
+        image: "$DOCKER_IMAGE"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: djangopolls-config
+        command: ["/bin/sh", "-c", "python manage.py migrate && python create_superuser.py && gunicorn --bind 0.0.0.0:8000 pollme.wsgi:application"]
+
+---
+# Servicio para la web app
+apiVersion: v1
+kind: Service
+metadata:
+  name: djangopolls-service
+spec:
+  selector:
+    app: djangopolls
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: LoadBalancer

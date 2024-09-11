@@ -1,0 +1,41 @@
+name: Deploy to Amazon EKS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Amazon EKS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
+
+      - name: Replace placeholders in configmap.yml and apply
+        run: |
+          export SECRET_KEY=${{ secrets.SECRET_KEY }}
+          export DATABASE_HOST=${{ secrets.DATABASE_HOST }}
+          export DATABASE_PORT=${{ secrets.DATABASE_PORT }}
+          export DATABASE_NAME=${{ secrets.DATABASE_NAME }}
+          export DATABASE_USER=${{ secrets.DATABASE_USER }}
+          export DATABASE_PASS=${{ secrets.DATABASE_PASS }}
+          export GMAIL_EMAIL=${{ secrets.GMAIL_EMAIL }}
+          export GMAIL_PASSWORD=${{ secrets.GMAIL_PASSWORD }}
+          export DJANGO_SUPERUSER_USERNAME=${{ secrets.DJANGO_SUPERUSER_USERNAME }}
+          export DJANGO_SUPERUSER_EMAIL=${{ secrets.DJANGO_SUPERUSER_EMAIL }}
+          export DJANGO_SUPERUSER_PASSWORD=${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
+          export DOCKER_IMAGE=${{ secrets.DOCKER_IMAGE }}
+          envsubst < k8s/webapp.yml | kubectl apply -f -
+
+      - name: Deploy to EKS
+        run: kubectl apply -f k8s/webapp.yml
+
+      
