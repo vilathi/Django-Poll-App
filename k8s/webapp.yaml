@@ -4,7 +4,7 @@ kind: ConfigMap
 metadata:
   name: djangopolls-config
 data:
-  SECRET_KEY: "${DJANGO_SECRET_KEY}"
+  SECRET_KEY: "${SECRET_KEY}"
   DEBUG: "False"
   DATABASE_HOST: "${DATABASE_HOST}"
   DATABASE_PORT: "${DATABASE_PORT}"
