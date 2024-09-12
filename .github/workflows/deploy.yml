@@ -9,17 +9,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Update kubeconfig
-        run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
-
-      - name: Replace placeholders in configmap.yml and apply
+      - name: Repository Checkout
+        uses: actions/checkout@v4
+        
+      - name: Replace placeholders in configmap.yml
         run: |
           export SECRET_KEY="${{ secrets.SECRET_KEY }}"
           export DATABASE_HOST=${{ secrets.DATABASE_HOST }}
@@ -33,9 +26,19 @@ jobs:
           export DJANGO_SUPERUSER_EMAIL=${{ secrets.DJANGO_SUPERUSER_EMAIL }}
           export DJANGO_SUPERUSER_PASSWORD=${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
           export DOCKER_IMAGE=${{ secrets.DOCKER_IMAGE }}
-          envsubst < k8s/webapp.yaml | kubectl apply -f -
+          envsubst < k8s/webapp.yaml > k8s/webapp_temp.yaml
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
 
       - name: Deploy to EKS
-        run: kubectl apply -f k8s/webapp.yaml
+        run: kubectl apply -f k8s/webapp_temp.yaml
 
       
